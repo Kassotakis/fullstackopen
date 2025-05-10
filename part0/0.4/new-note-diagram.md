@@ -12,4 +12,4 @@ sequenceDiagram
     activate server
     server-->>browser: HTML with updated list
     deactivate server
-    ```
+```
