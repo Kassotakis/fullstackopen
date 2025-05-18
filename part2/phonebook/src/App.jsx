@@ -2,13 +2,21 @@ import { useState, useEffect } from 'react'
 import Filter from './Filter'
 import PersonForm from './PersonForm'
 import Persons from './Persons'
+import Notification from './Notification'
+import Error from './Error'
+
 import personService from './services/persons'
+import './index.css'
 
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [notification, setNotification] = useState('')
+  const [error, setError] = useState('')
+
+
 
   useEffect(() => {
     personService
@@ -36,6 +44,7 @@ const App = () => {
   }
 }
 
+
 const addPerson = (event) => {
   event.preventDefault()
   const existingPerson = persons.find(person => person.name === newName)
@@ -48,11 +57,26 @@ const addPerson = (event) => {
           setPersons(persons.map(person => 
             person.id !== existingPerson.id ? person : returnedPerson
           ))
+          setNotification(
+          `${returnedPerson.name}'s phone changes to ${newNumber}`
+          )
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
           setNewName('')
           setNewNumber('')
         })
         .catch(() => {
-          alert(`Failed to update ${existingPerson.name}`)
+          setPersons(persons.filter(person => 
+            person.id !== existingPerson.id
+          ))
+          setError(
+          `${existingPerson.name} has been deleted`
+          )
+          setTimeout(() => {
+            setError(null)
+          }, 5000)
+
         })
     }
     return
@@ -64,6 +88,12 @@ const addPerson = (event) => {
       setPersons(persons.concat(returnedPerson))
       setNewName('')
       setNewNumber('')
+      setNotification(
+        `${returnedPerson.name} was added to the list`
+      )
+      setTimeout(() => {
+        setNotification(null)
+      }, 5000)
     })
     .catch(() => alert('Failed to add person'))
 }
@@ -76,6 +106,8 @@ const addPerson = (event) => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification} />
+      <Error message={error} />
       <Filter filter={filter} handleFilterChange={handleFilterChange} />
 
       <h3>Add a new</h3>
