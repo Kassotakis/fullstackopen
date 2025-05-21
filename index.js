@@ -1,11 +1,13 @@
 const express = require('express');
 const morgan = require('morgan'); 
 const cors = require('cors');
+const path = require('path'); // <-- Add this line
 const app = express();
 
 app.use(cors());
 app.use(morgan('tiny')); 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'dist'))); // <-- Update this line
 
 let persons = [
   { id: "1", name: "Arto Hellas", number: "040-123456" },
@@ -50,7 +52,6 @@ app.get('/info', (req, res) => {
   );
 });
 
-
 app.post('/api/persons', (req, res) => {
   const body = req.body;
 
@@ -68,6 +69,10 @@ app.post('/api/persons', (req, res) => {
   res.json(person);
 });
 
+// Let frontend handle unknown routes (must be last)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
