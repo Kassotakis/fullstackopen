@@ -135,6 +135,48 @@ test('if the url property is missing from the request data, the backend responds
     .expect(400)
 })
 
+test('deleting a blog works', async () => {
+  // Delete a blog by id
+  await api
+    .delete('/api/blogs/5a422b3a1b54a676234d17f9')
+    .expect(204)
+
+  // Fetch all blogs after deletion
+  const response = await api.get('/api/blogs')
+  // The number of blogs should be one less than initialBlogs
+  assert.strictEqual(response.body.length, initialBlogs.length - 1)
+
+  // The deleted blog should not be present anymore
+  const ids = response.body.map(blog => blog.id)
+  assert.ok(!ids.includes('5a422b3a1b54a676234d17f9'))
+})
+
+
+test('editing a blog works', async () => {
+  const updatedBlog = {
+    title: "Kanye's Diary",
+    author: "Ye",
+    url: "https://yezee.com/",
+    likes: 5
+  }
+
+  // Update the blog
+  await api
+    .put('/api/blogs/5a422b3a1b54a676234d17f9')
+    .send(updatedBlog)
+    .expect(200) // Should be 200 OK for a successful update
+
+  // Fetch the updated blog
+  const response = await api.get('/api/blogs')
+  const blog = response.body.find(b => b.id === '5a422b3a1b54a676234d17f9')
+
+  // Check that the blog's fields are updated
+  assert.strictEqual(blog.title, updatedBlog.title)
+  assert.strictEqual(blog.author, updatedBlog.author)
+  assert.strictEqual(blog.url, updatedBlog.url)
+  assert.strictEqual(blog.likes, updatedBlog.likes)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
