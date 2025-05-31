@@ -5,12 +5,12 @@ const app = require('../app')
 const assert = require('assert')
 
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
 
-
 const initialBlogs = [
-{
+  {
     _id: "5a422a851b54a676234d17f7",
     title: "React patterns",
     author: "Michael Chan",
@@ -36,18 +36,34 @@ const initialBlogs = [
   }
 ]
 
+let token = null
 
 beforeEach(async () => {
   await Blog.deleteMany({})
-  let blogObject = new Blog(initialBlogs[0])
-  await blogObject.save()
-  blogObject = new Blog(initialBlogs[1])
-  await blogObject.save()
-  blogObject = new Blog(initialBlogs[2])
-  await blogObject.save()
-})
+  await User.deleteMany({})
 
-// ...
+  // Create a user
+  const newUser = {
+    username: 'testuser',
+    name: 'Test User',
+    password: 'testpass'
+  }
+  await api.post('/api/users').send(newUser)
+
+  // Log in to get token
+  const loginResponse = await api
+    .post('/api/login')
+    .send({ username: newUser.username, password: newUser.password })
+  token = `Bearer ${loginResponse.body.token}`
+
+  const user = await User.findOne({ username: newUser.username })
+  for (let blog of initialBlogs) {
+    let blogObject = new Blog({ ...blog, user: user._id })
+    await blogObject.save()
+    user.blogs = user.blogs.concat(blogObject._id)
+    await user.save()
+  }
+})
 
 test('correct amount of blogs is returned as json', async () => {
   const response = await api
@@ -55,7 +71,6 @@ test('correct amount of blogs is returned as json', async () => {
     .expect(200)
     .expect('Content-Type', /application\/json/)
 
-  // Check the number of blogs returned
   assert.strictEqual(response.body.length, initialBlogs.length)
 })
 
@@ -75,18 +90,15 @@ test('making an HTTP POST request to the /api/blogs URL successfully creates a n
     likes: 5
   }
 
-  // Post the new blog
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', token)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
-  // Fetch all blogs after POST
   const response = await api.get('/api/blogs')
   assert.strictEqual(response.body.length, initialBlogs.length + 1)
-
-  // Check that the new blog is in the database
   const titles = response.body.map(blog => blog.title)
   assert.ok(titles.includes(newBlog.title))
 })
@@ -101,6 +113,7 @@ test('if the likes property is missing from the request, it will default to the 
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', token)
     .expect(201)
     .expect('Content-Type', /application\/json/)
 
@@ -113,12 +126,13 @@ test('if the title property is missing from the request data, the backend respon
   const newBlog = {
     author: "Ye",
     url: "https://yezee.com/",
-    likes: 5
+    likes: 5,
   }
 
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', token)
     .expect(400)
 })
 
@@ -126,31 +140,41 @@ test('if the url property is missing from the request data, the backend responds
   const newBlog = {
     title: "Kanye's Diary",
     author: "Ye",
-    likes: 5
+    likes: 5,
   }
 
   await api
     .post('/api/blogs')
     .send(newBlog)
+    .set('Authorization', token)
     .expect(400)
 })
 
+test('adding a blog fails with 401 Unauthorized if token is not provided', async () => {
+  const newBlog = {
+    title: "Unauthorized Blog",
+    author: "No Token",
+    url: "https://notoken.com/",
+    likes: 1
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(401)
+})
+
 test('deleting a blog works', async () => {
-  // Delete a blog by id
   await api
     .delete('/api/blogs/5a422b3a1b54a676234d17f9')
+    .set('Authorization', token)
     .expect(204)
 
-  // Fetch all blogs after deletion
   const response = await api.get('/api/blogs')
-  // The number of blogs should be one less than initialBlogs
   assert.strictEqual(response.body.length, initialBlogs.length - 1)
-
-  // The deleted blog should not be present anymore
   const ids = response.body.map(blog => blog.id)
   assert.ok(!ids.includes('5a422b3a1b54a676234d17f9'))
 })
-
 
 test('editing a blog works', async () => {
   const updatedBlog = {
@@ -160,17 +184,13 @@ test('editing a blog works', async () => {
     likes: 5
   }
 
-  // Update the blog
   await api
     .put('/api/blogs/5a422b3a1b54a676234d17f9')
     .send(updatedBlog)
-    .expect(200) // Should be 200 OK for a successful update
+    .expect(200)
 
-  // Fetch the updated blog
   const response = await api.get('/api/blogs')
   const blog = response.body.find(b => b.id === '5a422b3a1b54a676234d17f9')
-
-  // Check that the blog's fields are updated
   assert.strictEqual(blog.title, updatedBlog.title)
   assert.strictEqual(blog.author, updatedBlog.author)
   assert.strictEqual(blog.url, updatedBlog.url)
