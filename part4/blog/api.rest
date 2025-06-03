@@ -1,9 +1,10 @@
-POST http://localhost:3003/api/blogs
+
+
+POST http://localhost:3003/api/users
 Content-Type: application/json
 
 {
-  "title": "Kanye",
-  "author": "West",
-  "url": "https//kanye.com",
-  "likes": 666
+  "username": "Yeezy",
+  "name": "Kanye West",
+  "password": "inparis"
 }
