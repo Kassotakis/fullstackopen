@@ -41,22 +41,27 @@ blogsRouter.delete('/:id', middleware.userExtractor, async (request, response) =
   response.status(204).end()
 })
 
-// PUT route does NOT use userExtractor (unless you want to protect it)
+
 blogsRouter.put('/:id', async (request, response) => {
   const { title, author, url, likes } = request.body
 
-  const blog = await Blog.findById(request.params.id)
-  if (!blog) {
-    return response.status(404).end()
+  const updatedData = {
+    title,
+    author,
+    url,
+    likes
   }
 
-  blog.title = title
-  blog.author = author
-  blog.url = url
-  blog.likes = likes
+  const updatedBlog = await Blog.findByIdAndUpdate(
+    request.params.id,
+    updatedData,
+    { new: true, runValidators: true, context: 'query' }
+  ).populate('user', { username: 1, name: 1 })
 
-  const updatedBlog = await blog.save()
   response.status(200).json(updatedBlog)
 })
+
+
+
 
 module.exports = blogsRouter

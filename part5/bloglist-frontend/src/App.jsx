@@ -18,10 +18,12 @@ const App = () => {
   const blogFormRef = useRef()
 
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs(blogs)
-    )
+    blogService.getAll().then(initialBlogs => {
+      const sorted = initialBlogs.sort((a, b) => b.likes - a.likes)
+      setBlogs(sorted)
+    })
   }, [])
+
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
@@ -70,6 +72,31 @@ const App = () => {
     }
   }
 
+  const handleLike = async (updatedBlog) => {
+    try {
+      const returnedBlog = await blogService.change(updatedBlog)
+      setBlogs(blogs.map(b => b.id === returnedBlog.id ? returnedBlog : b))
+    } catch (error) {
+      showNotification('Failed to like blog')
+    }
+  }
+
+
+  const removeBlog = async (blog) => {
+    const confirm = window.confirm(`Remove blog "${blog.title}" by ${blog.author}?`)
+    if (!confirm) return
+
+    try {
+      await blogService.remove(blog.id)
+      setBlogs(blogs.filter(b => b.id !== blog.id))
+      showNotification(`Deleted blog: ${blog.title}`)
+    } catch (error) {
+      showNotification('Failed to delete blog')
+    }
+  }
+
+
+
   if (user === null) {
     return (
       <LoginForm
@@ -95,7 +122,7 @@ const App = () => {
       </Togglable>
 
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} user={user} handleLike={handleLike} handleRemove={removeBlog} />
       )}
     </div>
   )
