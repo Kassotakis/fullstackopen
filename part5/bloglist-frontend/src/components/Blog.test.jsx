@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import Blog from './Blog'
 
 const blog = {
@@ -23,3 +24,16 @@ test('renders title and author but not url or likes by default', () => {
 })
 
 
+test('blog\'s URL and number of likes are shown when the button controlling the shown details has been clicked', async () => {
+  
+  let {container} = render(<Blog blog={blog} user={user} />)
+
+  const userEventInstance = userEvent.setup()
+  const viewButton = screen.getByText('view')
+
+  await userEventInstance.click(viewButton)
+
+  const div = container.querySelector('.blog-details')
+    expect(div).not.toHaveStyle('display: none')
+  
+})
