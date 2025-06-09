@@ -25,6 +25,7 @@ const Blog = ({ blog, user, handleLike, handleRemove}) => {
     <div style={blogStyle} className="blog">
       <div className="blog-summary">
         {blog.title} by {blog.author}
+        <br />
         <button onClick={toggleVisibility}>
           {visible ? 'hide' : 'view'}
         </button>
