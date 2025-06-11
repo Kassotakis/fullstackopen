@@ -1,15 +1,25 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { voteAnecdote } from '../reducers/anecdoteReducer'
+import { vote } from '../reducers/anecdoteReducer' // Correct import of 'vote'
+import { setNotification, removeNotification } from '../reducers/notificationReducer'
 
-const AnecdoteList = () => { 
-  const anecdotes = useSelector(state => state)
+const AnecdoteList = () => {
+  const anecdotes = useSelector(state => state.anecdotes)
+  const filter = useSelector(state => state.filter)
   const dispatch = useDispatch()
 
-  const handleVote = (id) => {
-    dispatch(voteAnecdote(id))
+  const handleVote = (anecdote) => {
+    dispatch(vote(anecdote))
+    dispatch(setNotification(`you voted for '${anecdote.content}'`))
+    setTimeout(() => {
+      dispatch(removeNotification())
+    }, 5000)
   }
 
-  const sortedAnecdotes = [...anecdotes].sort((a, b) => b.votes - a.votes)
+  const filteredAnecdotes = anecdotes.filter(anecdote =>
+    anecdote.content.toLowerCase().includes(filter.toLowerCase())
+  )
+
+  const sortedAnecdotes = [...filteredAnecdotes].sort((a, b) => b.votes - a.votes)
 
   return (
     <div>
@@ -20,7 +30,7 @@ const AnecdoteList = () => {
           </div>
           <div>
             has {anecdote.votes}
-            <button onClick={() => handleVote(anecdote.id)}>vote</button>
+            <button onClick={() => handleVote(anecdote)}>vote</button>
           </div>
         </div>
       )}
