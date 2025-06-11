@@ -33,7 +33,7 @@ const anecdoteSlice = createSlice({
       }
     },
     createAnecdote(state, action) { 
-      const content = action.payload.content
+      const content = action.payload
       const newAnecdote = asObject(content)
       state.push(newAnecdote) 
     }
