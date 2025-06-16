@@ -1,13 +1,13 @@
 const express = require('express');
 const morgan = require('morgan'); 
 const cors = require('cors');
-const path = require('path'); // <-- Add this line
+const path = require('path'); 
 const app = express();
 
 app.use(cors());
 app.use(morgan('tiny')); 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'dist'))); // <-- Update this line
+app.use(express.static(path.join(__dirname, 'dist'))); 
 
 let persons = [
   { id: "1", name: "Arto Hellas", number: "040-123456" },
@@ -68,8 +68,6 @@ app.post('/api/persons', (req, res) => {
   persons = persons.concat(person);
   res.json(person);
 });
-
-// Let frontend handle unknown routes (must be last
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
