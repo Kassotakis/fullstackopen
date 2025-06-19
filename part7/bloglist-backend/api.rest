@@ -1,0 +1,17 @@
+
+
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "Yeezy",
+  "name": "Kanye West",
+  "password": "inparis"
+}
+
+POST http://localhost:3003/api/blogs/683e40f359c6376b9a025cb9/comments
+Content-Type: application/json
+
+{
+  "comment": "Squeeze her, don't tease her, never leave her!"
+}
