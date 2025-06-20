@@ -32,6 +32,7 @@ const BlogDetails = ({ handleLike, handleDelete, user }) => {
         </p>
         <p className="card-text">Likes: {blog.likes}</p>
         <button
+          className="btn btn-primary"
           onClick={() =>
             handleLike({
               ...blog,
