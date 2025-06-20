@@ -124,6 +124,7 @@ const resolvers = {
   Query: {
     authorCount: () => authors.length,
     bookCount: () => books.length,
+    allAuthors: () => authors,
     allBooks: (root, args) => {
       let filteredBooks = books;
 
@@ -141,7 +142,6 @@ const resolvers = {
 
       return filteredBooks;
     },
-    allAuthors: () => authors,
   },
 
   Author: {
