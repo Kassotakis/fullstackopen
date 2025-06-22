@@ -90,7 +90,9 @@ const Authors = (props) => {
             onChange={({ target }) => setBorn(target.value)}
           />
         </div>
-        <button type="submit">update author</button>
+        <button type="submit" disabled={!name}>
+          update author
+        </button>
       </form>
     </div>
   );
