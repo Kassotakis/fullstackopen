@@ -22,7 +22,7 @@ mongoose
     console.log("error connection to MongoDB:", error.message);
   });
 
-const typeDefs = gql`
+const typeDefs = `
   type User {
     username: String!
     favoriteGenre: String!
