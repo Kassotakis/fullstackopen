@@ -25,7 +25,7 @@ mongoose
 const typeDefs = `
   type User {
     username: String!
-    favoriteGenre: String!
+    favouriteGenre: String!
     id: ID!
   }
 
@@ -64,9 +64,10 @@ const typeDefs = `
       genres: [String!]!
     ): Book
 
+    setFavouriteGenre(genre: String!): User
     editAuthor(name: String!, setBornTo: Int!): Author
 
-    createUser(username: String!, favoriteGenre: String!): User
+    createUser(username: String!, favouriteGenre: String!): User
     login(username: String!, password: String!): Token
   }
 `;
@@ -190,6 +191,17 @@ const resolvers = {
       };
 
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) };
+    },
+
+    setFavouriteGenre: async (root, args, context) => {
+      const currentUser = context.currentUser;
+      if (!currentUser) {
+        throw new AuthenticationError("not authenticated");
+      }
+
+      currentUser.favouriteGenre = args.genre;
+      await currentUser.save();
+      return currentUser;
     },
   },
 };
