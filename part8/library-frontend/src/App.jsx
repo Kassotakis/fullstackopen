@@ -4,7 +4,10 @@ import Books from "./components/Books";
 import NewBook from "./components/NewBook";
 import LoginForm from "./components/LoginForm";
 import Recommended from "./components/Recommended";
+import { BOOK_ADDED } from "./queries";
 
+import { useApolloClient } from "@apollo/client";
+import { useQuery, useMutation, useSubscription } from "@apollo/client";
 import { useApolloClient } from "@apollo/client";
 
 const App = () => {
@@ -18,6 +21,29 @@ const App = () => {
       setToken(savedToken);
     }
   }, []);
+
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      const book = data.data.bookAdded;
+      window.alert(`New book added: ${book.title} by ${book.author.name}`);
+      updateCacheWith(book, client);
+    },
+  });
+
+  const updateCacheWith = (book, client) => {
+    const includedIn = (set, object) =>
+      set.map((b) => b.id).includes(object.id);
+
+    const dataInStore = client.readQuery({ query: ALL_BOOKS });
+    if (!includedIn(dataInStore.allBooks, book)) {
+      client.writeQuery({
+        query: ALL_BOOKS,
+        data: {
+          allBooks: [...dataInStore.allBooks, book],
+        },
+      });
+    }
+  };
 
   const logout = () => {
     setToken(null);
