@@ -54,12 +54,14 @@ const calculateExercises = (dailyHours: number[], target: number): Results => {
   };
 };
 
-try {
-  const args = process.argv.slice(2);
-  const { target, dailyHours } = parseArguments(args);
-  console.log(calculateExercises(dailyHours, target));
-} catch (e: unknown) {
-  if (e instanceof Error) {
-    console.log("Error:", e.message);
+if (require.main === module) {
+  try {
+    const args = process.argv.slice(2);
+    const { target, dailyHours } = parseArguments(args);
+    console.log(calculateExercises(dailyHours, target));
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.log("Error:", e.message);
+    }
   }
 }
