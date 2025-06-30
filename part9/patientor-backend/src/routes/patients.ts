@@ -1,8 +1,9 @@
 import express from "express";
 import patients from "../data/patients";
 import { PatientToShow, Patient } from "../types/patient";
-import { toNewPatient } from "../utils/patientUtils";
 import { v1 as uuid } from "uuid";
+import { z } from "zod";
+import { newPatientSchema } from "../utils/patientUtils";
 
 const router = express.Router();
 
@@ -14,10 +15,9 @@ router.get("/", (_req, res) => {
 });
 
 router.post("/", (req, res) => {
-  console.log("Request body:", req.body);
-
   try {
-    const newPatient = toNewPatient(req.body);
+    const newPatient = newPatientSchema.parse(req.body);
+
     const addedPatient: Patient = {
       id: uuid(),
       ...newPatient,
@@ -25,12 +25,12 @@ router.post("/", (req, res) => {
 
     patients.push(addedPatient);
     res.status(201).json(addedPatient);
-  } catch (e: unknown) {
-    let errorMessage = "Something went wrong.";
-    if (e instanceof Error) {
-      errorMessage += " Error: " + e.message;
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      res.status(400).send({ error: error.issues });
+    } else {
+      res.status(400).send({ error: "unknown error" });
     }
-    res.status(400).send(errorMessage);
   }
 });
 
