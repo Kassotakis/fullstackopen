@@ -14,6 +14,17 @@ router.get("/", (_req, res) => {
   res.json(patientsToShow);
 });
 
+router.get("/:id", (req, res) => {
+  const id: string = req.params.id;
+  const patient: Patient | undefined = patients.find((p) => p.id === id);
+
+  if (patient) {
+    res.json(patient);
+  } else {
+    res.status(404).send({ error: "Patient not found" });
+  }
+});
+
 router.post("/", (req, res) => {
   try {
     const newPatient = newPatientSchema.parse(req.body);
