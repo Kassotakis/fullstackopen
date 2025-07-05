@@ -1,9 +1,16 @@
 import express from "express";
 import patients from "../data/patients";
-import { PatientToShow, Patient } from "../types/patient";
+import {
+  PatientToShow,
+  Patient,
+  Entry,
+  EntryWithoutId,
+} from "../types/patient";
+
 import { v1 as uuid } from "uuid";
 import { z } from "zod";
 import { newPatientSchema } from "../utils/patientUtils";
+import { toNewEntry } from "../utils/patientUtils";
 
 const router = express.Router();
 
@@ -41,6 +48,34 @@ router.post("/", (req, res) => {
       res.status(400).send({ error: error.issues });
     } else {
       res.status(400).send({ error: "unknown error" });
+    }
+  }
+});
+
+router.post("/:id/entries", (req, res) => {
+  try {
+    const id = req.params.id;
+    const patient = patients.find((p) => p.id === id);
+
+    if (!patient) {
+      return res.status(404).send({ error: "Patient not found" });
+    }
+
+    const entry: EntryWithoutId = toNewEntry(req.body); // validate & parse
+
+    const newEntry: Entry = {
+      id: uuid(),
+      ...entry,
+    };
+
+    patient.entries.push(newEntry);
+
+    return res.status(201).json(newEntry);
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).send({ error: error.issues });
+    } else {
+      return res.status(400).send({ error: "unknown error" });
     }
   }
 });
