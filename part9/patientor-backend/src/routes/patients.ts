@@ -5,6 +5,7 @@ import {
   Patient,
   Entry,
   EntryWithoutId,
+  NewPatient,
 } from "../types/patient";
 
 import { v1 as uuid } from "uuid";
@@ -34,7 +35,7 @@ router.get("/:id", (req, res) => {
 
 router.post("/", (req, res) => {
   try {
-    const newPatient = newPatientSchema.parse(req.body);
+    const newPatient: NewPatient = newPatientSchema.parse(req.body);
 
     const addedPatient: Patient = {
       id: uuid(),
@@ -61,7 +62,7 @@ router.post("/:id/entries", (req, res) => {
       return res.status(404).send({ error: "Patient not found" });
     }
 
-    const entry: EntryWithoutId = toNewEntry(req.body); // validate & parse
+    const entry: EntryWithoutId = toNewEntry(req.body);
 
     const newEntry: Entry = {
       id: uuid(),
